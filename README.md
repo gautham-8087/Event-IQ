@@ -15,7 +15,6 @@ A smart event scheduling and resource allocation system powered by Event IQ AI a
 
 - **Backend**: Python Flask
 - **Database**: Supabase (PostgreSQL)
-- **AI**: Google Gemini 2.0 Flash (Event IQ powered)
 - **Frontend**: HTML, CSS, JavaScript (Vanilla)
 - **Authentication**: Supabase Auth
 
