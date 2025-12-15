@@ -1,0 +1,18 @@
+[
+  {
+    "id": "EVT-300",
+    "title": "Test Workshop1",
+    "type": "Seminar",
+    "start_time": "2025-12-05T08:10",
+    "end_time": "2025-12-05T03:15",
+    "description": "Manual Booking. Purpose: Important Note for Students. Attendees: 100"
+  },
+  {
+    "id": "EVT-301",
+    "title": "Test Workshop2",
+    "type": "Workshop",
+    "start_time": "2025-12-10T03:20",
+    "end_time": "2025-12-10T04:30",
+    "description": "Manual Booking. Purpose: Important Note for Students. Attendees: 80"
+  }
+]

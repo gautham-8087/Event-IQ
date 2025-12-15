@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - EventHub AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="https://unpkg.com/@phosphor-icons/web">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .auth-container {
+            width: 100%;
+            max-width: 400px;
+            padding: 2.5rem;
+            text-align: center;
+        }
+
+        .auth-header {
+            margin-bottom: 2rem;
+        }
+
+        .auth-header h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+        }
+
+        .form-group {
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .auth-btn {
+            margin-top: 1rem;
+            padding: 1rem;
+            font-size: 1rem;
+            font-weight: 600;
+            width: 100%;
+        }
+
+        .toggle-auth {
+            margin-top: 1.5rem;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .toggle-auth a {
+            color: var(--accent-color);
+            text-decoration: none;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .toggle-auth a:hover {
+            text-decoration: underline;
+        }
+
+        .error-msg {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            padding: 0.8rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            display: none;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="glass-panel auth-container">
+        <div class="auth-header">
+            <h1>EventHub AI</h1>
+            <p style="color: var(--text-secondary);">Smart Resource Allocation</p>
+        </div>
+
+        <div id="error-box" class="error-msg"></div>
+
+        <!-- Login Form -->
+        <form id="login-form" class="auth-form">
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="l-email" class="chat-input" value="agautham2024@gmail.com"
+                    placeholder="name@company.com" required style="width: 100%; box-sizing: border-box;">
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="l-password" class="chat-input" value="Gautham@12345" placeholder="••••••••"
+                    required style="width: 100%; box-sizing: border-box;">
+            </div>
+            <button type="submit" class="send-btn auth-btn">Sign In</button>
+        </form>
+
+        <!-- Signup Form -->
+        <form id="signup-form" class="auth-form" style="display: none;">
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="s-email" class="chat-input" placeholder="name@company.com" required
+                    style="width: 100%; box-sizing: border-box;">
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="s-password" class="chat-input" placeholder="Min 6 characters" required
+                    style="width: 100%; box-sizing: border-box;">
+            </div>
+            <button type="submit" class="send-btn auth-btn">Create Account</button>
+        </form>
+
+        <div class="toggle-auth">
+            <span id="toggle-text">Don't have an account?</span>
+            <a id="toggle-btn">Sign Up</a>
+        </div>
+    </div>
+
+    <script>
+        const loginForm = document.getElementById('login-form');
+        const signupForm = document.getElementById('signup-form');
+        const toggleBtn = document.getElementById('toggle-btn');
+        const toggleText = document.getElementById('toggle-text');
+        const errorBox = document.getElementById('error-box');
+
+        let isLogin = true;
+
+        toggleBtn.addEventListener('click', () => {
+            isLogin = !isLogin;
+            if (isLogin) {
+                loginForm.style.display = 'flex';
+                signupForm.style.display = 'none';
+                toggleText.innerText = "Don't have an account?";
+                toggleBtn.innerText = "Sign Up";
+                document.title = "Login - EventHub AI";
+            } else {
+                loginForm.style.display = 'none';
+                signupForm.style.display = 'flex';
+                toggleText.innerText = "Already have an account?";
+                toggleBtn.innerText = "Sign In";
+                document.title = "Sign Up - EventHub AI";
+            }
+            errorBox.style.display = 'none';
+        });
+
+        async function handleAuth(endpoint, email, password) {
+            errorBox.style.display = 'none';
+            const btn = isLogin ? loginForm.querySelector('button') : signupForm.querySelector('button');
+            const originalText = btn.innerText;
+            btn.innerText = "Processing...";
+            btn.disabled = true;
+
+            try {
+                const res = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await res.json();
+
+                if (res.ok) {
+                    // Check if this was a login action OR if we are auto-logging in
+                    if (endpoint.includes('/api/login')) {
+                        window.location.href = '/';
+                    } else {
+                        // This was a signup action
+                        if (data.user) {
+                            alert("Account created! Logging you in...");
+                            // Auto login
+                            handleAuth('/api/login', email, password);
+                        } else {
+                            alert("Please check your email to verify your account.");
+                        }
+                    }
+                } else {
+                    errorBox.innerText = data.error || "Authentication failed";
+                    errorBox.style.display = 'block';
+                    btn.innerText = originalText;
+                    btn.disabled = false;
+                }
+            } catch (e) {
+                errorBox.innerText = "System Error. Please try again.";
+                errorBox.style.display = 'block';
+                console.error(e);
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('l-email').value;
+            const password = document.getElementById('l-password').value;
+            handleAuth('/api/login', email, password);
+        });
+
+        signupForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('s-email').value;
+            const password = document.getElementById('s-password').value;
+            handleAuth('/api/signup', email, password);
+        });
+    </script>
+</body>
+
+</html>

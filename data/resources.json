@@ -1,0 +1,362 @@
+[
+    {
+        "id": "R101",
+        "name": "Lecture Hall A",
+        "type": "Room",
+        "capacity": 100
+    },
+    {
+        "id": "R102",
+        "name": "Lecture Hall B",
+        "type": "Room",
+        "capacity": 100
+    },
+    {
+        "id": "R103",
+        "name": "Seminar Room 1",
+        "type": "Room",
+        "capacity": 50
+    },
+    {
+        "id": "R104",
+        "name": "Seminar Room 2",
+        "type": "Room",
+        "capacity": 50
+    },
+    {
+        "id": "R105",
+        "name": "Computer Lab 1",
+        "type": "Room",
+        "capacity": 30
+    },
+    {
+        "id": "R106",
+        "name": "Computer Lab 2",
+        "type": "Room",
+        "capacity": 30
+    },
+    {
+        "id": "R107",
+        "name": "Workshop Studio A",
+        "type": "Room",
+        "capacity": 40
+    },
+    {
+        "id": "R108",
+        "name": "Workshop Studio B",
+        "type": "Room",
+        "capacity": 40
+    },
+    {
+        "id": "R109",
+        "name": "Meeting Room 1",
+        "type": "Room",
+        "capacity": 15
+    },
+    {
+        "id": "R110",
+        "name": "Meeting Room 2",
+        "type": "Room",
+        "capacity": 15
+    },
+    {
+        "id": "R111",
+        "name": "Classroom 101",
+        "type": "Room",
+        "capacity": 40
+    },
+    {
+        "id": "R112",
+        "name": "Classroom 102",
+        "type": "Room",
+        "capacity": 40
+    },
+    {
+        "id": "R113",
+        "name": "Classroom 103",
+        "type": "Room",
+        "capacity": 40
+    },
+    {
+        "id": "R114",
+        "name": "Classroom 104",
+        "type": "Room",
+        "capacity": 40
+    },
+    {
+        "id": "R115",
+        "name": "Auditorium Main",
+        "type": "Room",
+        "capacity": 300
+    },
+    {
+        "id": "R116",
+        "name": "Small Conf Room",
+        "type": "Room",
+        "capacity": 10
+    },
+    {
+        "id": "R117",
+        "name": "Science Lab",
+        "type": "Room",
+        "capacity": 25
+    },
+    {
+        "id": "R118",
+        "name": "Art Studio",
+        "type": "Room",
+        "capacity": 25
+    },
+    {
+        "id": "R119",
+        "name": "Discussion Room A",
+        "type": "Room",
+        "capacity": 8
+    },
+    {
+        "id": "R120",
+        "name": "Discussion Room B",
+        "type": "Room",
+        "capacity": 8
+    },
+    {
+        "id": "I201",
+        "name": "Dr. Sarah Smith",
+        "type": "Instructor",
+        "specialization": "Computer Science"
+    },
+    {
+        "id": "I202",
+        "name": "Prof. John Doe",
+        "type": "Instructor",
+        "specialization": "Mathematics"
+    },
+    {
+        "id": "I203",
+        "name": "Ms. Priya Sharma",
+        "type": "Instructor",
+        "specialization": "Python Programming"
+    },
+    {
+        "id": "I204",
+        "name": "Mr. Alan Turing",
+        "type": "Instructor",
+        "specialization": "Algorithms"
+    },
+    {
+        "id": "I205",
+        "name": "Dr. Emily Blunt",
+        "type": "Instructor",
+        "specialization": "Physics"
+    },
+    {
+        "id": "I206",
+        "name": "Prof. Richard Feynman",
+        "type": "Instructor",
+        "specialization": "Physics"
+    },
+    {
+        "id": "I207",
+        "name": "Ms. Ada Lovelace",
+        "type": "Instructor",
+        "specialization": "History of Computing"
+    },
+    {
+        "id": "I208",
+        "name": "Mr. Guido van Rossum",
+        "type": "Instructor",
+        "specialization": "Software Engineering"
+    },
+    {
+        "id": "I209",
+        "name": "Dr. Jane Goodall",
+        "type": "Instructor",
+        "specialization": "Biology"
+    },
+    {
+        "id": "I210",
+        "name": "Prof. Stephen Hawking",
+        "type": "Instructor",
+        "specialization": "Cosmology"
+    },
+    {
+        "id": "I211",
+        "name": "Ms. Grace Hopper",
+        "type": "Instructor",
+        "specialization": "COBOL / Legacy Systems"
+    },
+    {
+        "id": "I212",
+        "name": "Mr. Linus Torvalds",
+        "type": "Instructor",
+        "specialization": "Operating Systems"
+    },
+    {
+        "id": "I213",
+        "name": "Dr. Marie Curie",
+        "type": "Instructor",
+        "specialization": "Chemistry"
+    },
+    {
+        "id": "I214",
+        "name": "Prof. Isaac Newton",
+        "type": "Instructor",
+        "specialization": "Calculus"
+    },
+    {
+        "id": "I215",
+        "name": "Ms. Katherine Johnson",
+        "type": "Instructor",
+        "specialization": "Orbital Mechanics"
+    },
+    {
+        "id": "I216",
+        "name": "Mr. Nikola Tesla",
+        "type": "Instructor",
+        "specialization": "Electrical Engineering"
+    },
+    {
+        "id": "I217",
+        "name": "Dr. Rosalind Franklin",
+        "type": "Instructor",
+        "specialization": "Genetics"
+    },
+    {
+        "id": "I218",
+        "name": "Prof. Charles Darwin",
+        "type": "Instructor",
+        "specialization": "Evolutionary Biology"
+    },
+    {
+        "id": "I219",
+        "name": "Ms. Rachel Carson",
+        "type": "Instructor",
+        "specialization": "Environmental Science"
+    },
+    {
+        "id": "I220",
+        "name": "Mr. Carl Sagan",
+        "type": "Instructor",
+        "specialization": "Astronomy"
+    },
+    {
+        "id": "E301",
+        "name": "Projector HD",
+        "type": "Equipment",
+        "count": 1
+    },
+    {
+        "id": "E302",
+        "name": "Projector 4K",
+        "type": "Equipment",
+        "count": 1
+    },
+    {
+        "id": "E303",
+        "name": "Microphone Wireless",
+        "type": "Equipment",
+        "count": 1
+    },
+    {
+        "id": "E304",
+        "name": "Microphone Wired",
+        "type": "Equipment",
+        "count": 1
+    },
+    {
+        "id": "E305",
+        "name": "Whiteboard Marker Set",
+        "type": "Equipment",
+        "count": 1
+    },
+    {
+        "id": "E306",
+        "name": "Flip Chart",
+        "type": "Equipment",
+        "count": 1
+    },
+    {
+        "id": "E307",
+        "name": "Laptop (Windows)",
+        "type": "Equipment",
+        "count": 1
+    },
+    {
+        "id": "E308",
+        "name": "Laptop (Mac)",
+        "type": "Equipment",
+        "count": 1
+    },
+    {
+        "id": "E309",
+        "name": "Laser Pointer",
+        "type": "Equipment",
+        "count": 1
+    },
+    {
+        "id": "E310",
+        "name": "Speaker System",
+        "type": "Equipment",
+        "count": 1
+    },
+    {
+        "id": "E311",
+        "name": "Extension Cord",
+        "type": "Equipment",
+        "count": 1
+    },
+    {
+        "id": "E312",
+        "name": "Webcam HD",
+        "type": "Equipment",
+        "count": 1
+    },
+    {
+        "id": "E313",
+        "name": "Document Camera",
+        "type": "Equipment",
+        "count": 1
+    },
+    {
+        "id": "E314",
+        "name": "Clicker",
+        "type": "Equipment",
+        "count": 1
+    },
+    {
+        "id": "E315",
+        "name": "Podium",
+        "type": "Equipment",
+        "count": 1
+    },
+    {
+        "id": "E316",
+        "name": "Video Camera 4K",
+        "type": "Equipment",
+        "count": 1
+    },
+    {
+        "id": "E317",
+        "name": "Tripod",
+        "type": "Equipment",
+        "count": 1
+    },
+    {
+        "id": "E318",
+        "name": "Green Screen",
+        "type": "Equipment",
+        "count": 1
+    },
+    {
+        "id": "E319",
+        "name": "VR Headset",
+        "type": "Equipment",
+        "count": 1
+    },
+    {
+        "id": "E320",
+        "name": "Tablet",
+        "type": "Equipment",
+        "count": 1
+    }
+]

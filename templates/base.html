@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event AI Scheduler</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <!-- Phosphor Icons for nice UI icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <div>
+                <h1>Event IQ </h1>
+                <p style="color: var(--text-secondary);">Smart Resource Allocation System</p>
+            </div>
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <span style="color: var(--text-secondary); font-size: 0.9rem;">{{ user_email }}</span>
+                <button id="logout-btn"
+                    style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer;">
+                    <i class="ph ph-sign-out"></i> Logout
+                </button>
+            </div>
+            <div class="stats glass-panel" style="padding: 0.5rem 1rem;">
+                <span id="system-status">System Active</span> 🟢
+            </div>
+        </header>
+
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- Chat Interface -->
+    <button class="chat-fab" id="chat-fab">
+        <i class="ph ph-chat-teardrop-text" style="font-size: 32px; color: white;"></i>
+    </button>
+
+    <div class="chat-window glass-panel" id="chat-window">
+        <div class="chat-header">
+            <span><b>Gemini Assistant</b> 🤖</span>
+            <button id="close-chat" style="background:none; border:none; color:white; cursor:pointer;">
+                <i class="ph ph-x" style="font-size: 20px;"></i>
+            </button>
+        </div>
+        <div class="chat-messages" id="chat-messages">
+            <div class="message ai">
+                Hello! I'm Gemini. I can help you schedule events. Just tell me what you need!
+            </div>
+        </div>
+        <div class="chat-input-area">
+            <input type="text" class="chat-input" id="chat-input" placeholder="Type your request...">
+            <button class="send-btn" id="send-btn">
+                <i class="ph ph-paper-plane-right" style="font-size: 20px;"></i>
+            </button>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+
+</html>

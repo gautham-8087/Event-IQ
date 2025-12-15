@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="dashboard-grid">
+    <!-- Main Content: Upcoming Events -->
+    <div class="glass-panel" style="padding: 1.5rem;">
+        <div class="card-title">
+            <i class="ph ph-calendar-check" style="font-size: 24px; color: var(--accent-color);"></i>
+            Upcoming Events
+        </div>
+        <div id="events-list">
+            <p style="text-align:center; color: var(--text-secondary);">Loading events...</p>
+        </div>
+    </div>
+
+    <!-- Sidebar: Resources Status -->
+    <div style="display:flex; flex-direction:column; gap: 2rem;">
+        <div class="glass-panel" style="padding: 1.5rem;">
+            <div class="card-title">
+                <i class="ph ph-door" style="font-size: 24px; color: #10b981;"></i>
+                Rooms
+            </div>
+            <div id="rooms-list" style="max-height: 200px; overflow-y: auto;">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+
+        <div class="glass-panel" style="padding: 1.5rem;">
+            <div class="card-title">
+                <i class="ph ph-chalkboard-teacher" style="font-size: 24px; color: #f59e0b;"></i>
+                Instructors
+            </div>
+            <div id="instructors-list" style="max-height: 200px; overflow-y: auto;">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Manual Booking Modal -->
+<div id="manual-modal" class="glass-panel"
+    style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); width:600px; max-height:80vh; overflow-y:auto; z-index:2000; padding:2rem; flex-direction:column; gap:1rem;">
+    <div
+        style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--glass-border); padding-bottom:1rem;">
+        <h2 style="margin:0;">Manual Booking</h2>
+        <button id="close-manual"
+            style="background:none; border:none; color:white; font-size:1.5rem; cursor:pointer;">&times;</button>
+    </div>
+
+    <!-- Step 1: Search -->
+    <div id="booking-step-1">
+        <h3>1. Event Details</h3>
+        <input type="text" id="m-title" placeholder="Event Title" class="chat-input"
+            style="width:100%; margin-bottom:1rem;">
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem; margin-bottom:1rem;">
+            <select id="m-type" class="chat-input">
+                <option value="Seminar">Seminar</option>
+                <option value="Workshop">Workshop</option>
+                <option value="Class">Class</option>
+                <option value="Meeting">Meeting</option>
+            </select>
+            <input type="number" id="m-capacity" placeholder="Attendees" class="chat-input">
+        </div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem; margin-bottom:1rem;">
+            <input type="datetime-local" id="m-start" class="chat-input">
+            <input type="datetime-local" id="m-end" class="chat-input">
+        </div>
+        <input type="text" id="m-purpose" placeholder="Purpose/Description" class="chat-input"
+            style="width:100%; margin-bottom:1rem;">
+
+        <button id="check-avail-btn" class="send-btn" style="width:100%; padding:0.8rem; font-weight:bold;">Check
+            Availability</button>
+    </div>
+
+    <!-- Step 2: Select Resources -->
+    <div id="booking-step-2" style="display:none;">
+        <h3>2. Select Resources</h3>
+        <div style="margin-bottom:1rem;">
+            <label>Available Rooms:</label>
+            <select id="m-room-select" class="chat-input" style="width:100%"></select>
+        </div>
+        <div style="margin-bottom:1rem;">
+            <label>Available Instructor:</label>
+            <select id="m-instructor-select" class="chat-input" style="width:100%"></select>
+        </div>
+        <div style="margin-bottom:1rem;">
+            <label>Equipment (Select Multiple):</label>
+            <div id="m-equip-list"
+                style="max-height:100px; overflow-y:auto; background:rgba(0,0,0,0.2); padding:0.5rem; border-radius:8px;">
+                <!-- Checkboxes -->
+            </div>
+        </div>
+
+        <div style="display:flex; gap:1rem;">
+            <button id="back-step-1" class="chat-input" style="cursor:pointer;">Back</button>
+            <button id="confirm-book-btn" class="send-btn" style="flex:1; font-weight:bold; background:#10b981;">Confirm
+                Booking</button>
+        </div>
+    </div>
+</div>
+
+<!-- Event Details Modal -->
+<div id="details-modal" class="glass-panel"
+    style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); width:600px; max-height:80vh; overflow-y:auto; z-index:2000; padding:2rem; flex-direction:column; gap:1rem;">
+    <div
+        style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--glass-border); padding-bottom:1rem;">
+        <h2 id="d-title" style="margin:0;">Event Title</h2>
+        <button id="close-details"
+            style="background:none; border:none; color:white; font-size:1.5rem; cursor:pointer;">&times;</button>
+    </div>
+    <div style="font-size:0.9rem; color:var(--text-secondary); margin-bottom:1rem;">
+        <i class="ph ph-hash"></i> ID: <span id="d-id"></span>
+    </div>
+
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:2rem; margin-bottom:1rem;">
+        <div>
+            <label style="color:var(--accent-color); font-size:0.8rem;">TYPE</label>
+            <div id="d-type" style="font-size:1.1rem; font-weight:600;"></div>
+        </div>
+        <div>
+            <label style="color:var(--accent-color); font-size:0.8rem;">TIME</label>
+            <div id="d-time"></div>
+        </div>
+    </div>
+
+    <div style="margin-bottom:1rem;">
+        <label style="color:var(--accent-color); font-size:0.8rem;">DESCRIPTION</label>
+        <div id="d-desc" style="background:rgba(255,255,255,0.05); padding:1rem; border-radius:8px; line-height:1.5;">
+        </div>
+    </div>
+
+    <div>
+        <label style="color:var(--accent-color); font-size:0.8rem;">ALLOCATED RESOURCES</label>
+        <div id="d-resources" style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-top:0.5rem;">
+            <!-- Tags -->
+        </div>
+    </div>
+</div>
+
+<!-- Floating Action Button for Manual Booking (Secondary) -->
+<button id="manual-fab" class="chat-fab" style="right: 6rem; background: var(--chat-ai-bg);">
+    <i class="ph ph-plus" style="font-size: 32px; color: white;"></i>
+</button>
+{% endblock %}
