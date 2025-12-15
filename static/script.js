@@ -301,14 +301,22 @@ if (statusTitle) {
 }
 
 // --- Manual Booking Logic ---
-// const manualFab = document.getElementById('manual-fab'); // Already defined at top
+const manualBookingBtn = document.getElementById('manual-booking-btn');
 const manualModal = document.getElementById('manual-modal');
 const closeManual = document.getElementById('close-manual');
 const checkAvailBtn = document.getElementById('check-avail-btn');
 const backStep1 = document.getElementById('back-step-1');
 const confirmBookBtn = document.getElementById('confirm-book-btn');
 
-if (manualFab) manualFab.addEventListener('click', () => manualModal.style.display = 'flex');
+if (manualBookingBtn) {
+    manualBookingBtn.addEventListener('click', () => {
+        manualModal.style.display = 'flex';
+        // Reset to step 1
+        if (document.getElementById('booking-step-1')) document.getElementById('booking-step-1').style.display = 'block';
+        if (document.getElementById('booking-step-2')) document.getElementById('booking-step-2').style.display = 'none';
+    });
+}
+
 if (closeManual) closeManual.addEventListener('click', () => manualModal.style.display = 'none');
 
 if (backStep1) backStep1.addEventListener('click', () => {

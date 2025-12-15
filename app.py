@@ -9,7 +9,6 @@ import os
 from functools import wraps
 
 app = Flask(__name__)
-# Secure secret key for sessions (in production, use random env var)
 app.secret_key = os.environ.get('SECRET_KEY', 'dev_super_secret_key_123')
 
 ai_assistant = AIAssistant()
@@ -19,7 +18,6 @@ def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if 'user' not in session:
-            # If API request, return 401
             if request.path.startswith('/api/'):
                  return jsonify({"error": "Unauthorized"}), 401
             return redirect(url_for('login_page'))
@@ -36,6 +34,7 @@ def login_page():
 
 @app.route('/api/login', methods=['POST'])
 def api_login():
+    import bcrypt
     data = request.json
     email = data.get('email')
     password = data.get('password')
@@ -44,46 +43,50 @@ def api_login():
         if not supabase:
              return jsonify({"error": "Supabase client not initialized"}), 500
              
-        res = supabase.auth.sign_in_with_password({"email": email, "password": password})
-        if res.user:
-            session['user'] = res.user.id
-            session['email'] = res.user.email
-            return jsonify({"success": True, "user": {"id": res.user.id, "email": res.user.email}})
+        result = supabase.table('users').select("*").eq('email', email).execute()
+        
+        if not result.data or len(result.data) == 0:
+            return jsonify({"error": "Invalid credentials"}), 401
+        
+        user = result.data[0]
+        
+        if bcrypt.checkpw(password.encode('utf-8'), user['password_hash'].encode('utf-8')):
+            session['user'] = user['id']
+            session['email'] = user['email']
+            session['role'] = user['role']
+            session['full_name'] = user.get('full_name', '')
+            
+            return jsonify({
+                "success": True, 
+                "user": {
+                    "id": user['id'], 
+                    "email": user['email'],
+                    "role": user['role'],
+                    "full_name": user.get('full_name', '')
+                }
+            })
         else:
             return jsonify({"error": "Invalid credentials"}), 401
     except Exception as e:
-        return jsonify({"error": str(e)}), 400
+        print(f"Login error: {e}")
+        return jsonify({"error": "Login failed"}), 400
 
 @app.route('/api/signup', methods=['POST'])
 def api_signup():
-    data = request.json
-    email = data.get('email')
-    password = data.get('password')
-    
-    try:
-        if not supabase:
-             return jsonify({"error": "Supabase client not initialized"}), 500
-             
-        res = supabase.auth.sign_up({"email": email, "password": password})
-        if res.user:
-            # Depending on config, might not log in immediately if email confirm needed
-             return jsonify({"success": True, "user": {"id": res.user.id, "email": res.user.email}})
-        else:
-             return jsonify({"error": "Signup failed"}), 400
-    except Exception as e:
-        return jsonify({"error": str(e)}), 400
+    return jsonify({"error": "Signup is disabled. Please contact administrator."}), 403
 
 @app.route('/logout')
 def logout():
     session.clear()
-    if supabase:
-        supabase.auth.sign_out()
     return redirect(url_for('login_page'))
 
 @app.route('/')
 @login_required
 def dashboard():
-    return render_template('dashboard.html', user_email=session.get('email'))
+    return render_template('dashboard.html', 
+                         user_email=session.get('email'),
+                         user_role=session.get('role', 'student'),
+                         user_name=session.get('full_name', ''))
 
 @app.route('/api/resources', methods=['GET'])
 @login_required
@@ -102,7 +105,6 @@ def delete_event(event_id):
     return jsonify({"success": True, "message": "Event deleted successfully"})
 
 def extract_json(text):
-    """Extracts JSON object from text (handles markdown code blocks)."""
     match = re.search(r'\{.*\}', text, re.DOTALL)
     if match:
         try:
@@ -118,60 +120,42 @@ def chat():
     if not user_message:
         return jsonify({"error": "No message provided"}), 400
 
-    # 1. Send message to AI
     ai_response = ai_assistant.send_message(user_message)
-    
-    # 2. Check for JSON command
     command = extract_json(ai_response)
     
     if command:
         action = command.get('action')
         
         if action == 'check_resources':
-            # Run availability check
-            r_type = command.get('type') # 'Seminar', 'Workshop', etc. maps to room/instructor/equip logic
-            # Mapping logic:
-            # Seminar -> Room (Auditorium/Hall), Proj, Mic
-            # Workshop -> Room (Lab/Studio), Computers
-            # Class -> Room (Classroom), Whiteboard
-            
-            # Simplified Logic:
+            event_type = command.get('type')
+            capacity = command.get('capacity', 0)
             start = command.get('start')
             end = command.get('end')
-            capacity = command.get('capacity', 0)
             
-            # Find Room
             rooms = Scheduler.find_suitable_resources('Room', start, end, min_capacity=capacity)
-            
-            # Find Instructor
             instructors = Scheduler.find_suitable_resources('Instructor', start, end)
-            
-            # Find Equipment (generic grab for now, or specific based on type)
             equipment = Scheduler.find_suitable_resources('Equipment', start, end)
             
-            system_context = {
-                "available_rooms": [f"{r['id']} - {r['name']} (Cap: {r['capacity']})" for r in rooms[:5]], # Limit to 5
-                "available_instructors": [f"{i['id']} - {i['name']} ({i.get('specialization', '')})" for i in instructors[:5]],
-                "available_equipment": [f"{e['id']} - {e['name']}" for e in equipment[:5]]
+            context_data = {
+                "rooms": rooms[:5],
+                "instructors": instructors[:5],
+                "equipment": equipment[:3]
             }
             
-            # Feed back to AI
-            final_response = ai_assistant.send_message("Here is the availability data.", system_context=json.dumps(system_context))
-            return jsonify({"response": final_response})
+            follow_up = ai_assistant.send_message("", system_context=str(context_data))
+            return jsonify({"response": follow_up})
             
         elif action == 'book_event':
-            # Book the event
             event_details = command.get('event_details')
-            resources = command.get('resources') # List of IDs
+            resources = command.get('resources')
             
-            # Create event object
             new_event = {
                 "id": f"EVT-{len(DataManager.get_events()) + 100}",
-                "title": f"{event_details.get('type')} - {event_details.get('purpose', 'Event')}",
+                "title": event_details.get('title', 'AI Scheduled Event'),
                 "type": event_details.get('type'),
                 "start_time": event_details.get('start'),
                 "end_time": event_details.get('end'),
-                "description": f"Attendees: {event_details.get('attendees')}. Purpose: {event_details.get('purpose')}"
+                "description": f"AI Booking. {event_details.get('purpose', '')}"
             }
             
             success, msg = Scheduler.schedule_event(new_event, resources)
@@ -179,14 +163,10 @@ def chat():
             if success:
                 return jsonify({"response": f"✅ Event Confirmed! {msg}\n\n**Details:**\n- {new_event['title']}\n- {new_event['start_time']}"})
             else:
-                # Tell AI it failed
                 retry_response = ai_assistant.send_message(f"Booking failed: {msg}. Please ask user for alternative.")
                 return jsonify({"response": retry_response})
                 
-    # Normal textual response
     return jsonify({"response": ai_response})
-
-# --- Manual Booking Endpoints ---
 
 @app.route('/api/check-availability', methods=['POST'])
 @login_required
@@ -198,7 +178,7 @@ def check_availability():
         
         cap_str = data.get('capacity')
         min_capacity = int(cap_str) if cap_str and cap_str.strip() else 0
-        limit = 20 # Show more for manual
+        limit = 20
         
         rooms = Scheduler.find_suitable_resources('Room', start, end, min_capacity=min_capacity)
         instructors = Scheduler.find_suitable_resources('Instructor', start, end)
@@ -212,7 +192,7 @@ def check_availability():
     except Exception as e:
         import traceback
         traceback.print_exc()
-        return jsonify({"error": str(e), "trace": traceback.format_exc()}), 500
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/api/book-manual', methods=['POST'])
 @login_required
@@ -220,24 +200,61 @@ def book_manual():
     try:
         data = request.json
         event_details = data.get('event')
-        resource_ids = data.get('resources') # List
+        resource_ids = data.get('resources')
+        user_role = session.get('role', 'student')
+        user_id = session.get('user')
         
-        # Create Event Object
-        new_event = {
-            "id": f"EVT-{len(DataManager.get_events()) + 300}", # Different range
-            "title": event_details.get('title'),
-            "type": event_details.get('type'),
-            "start_time": event_details.get('start'),
-            "end_time": event_details.get('end'),
-            "description": f"Manual Booking. Purpose: {event_details.get('purpose')}. Attendees: {event_details.get('capacity')}"
-        }
+        # Students create pending events
+        if user_role == 'student':
+            import json as json_lib
+            
+            # Handle capacity conversion safely
+            capacity_str = event_details.get('capacity', '0')
+            capacity = int(capacity_str) if capacity_str and capacity_str.strip() else 0
+            
+            pending_event = {
+                "id": f"PEND-{len(supabase.table('pending_events').select('id').execute().data) + 1}",
+                "title": event_details.get('title'),
+                "type": event_details.get('type'),
+                "start_time": event_details.get('start'),
+                "end_time": event_details.get('end'),
+                "description": f"Purpose: {event_details.get('purpose')}. Attendees: {capacity}",
+                "capacity": capacity,
+                "requested_by": user_id,
+                "requested_resources": json_lib.dumps(resource_ids),
+                "status": "pending"
+            }
+            
+            result = supabase.table('pending_events').insert(pending_event).execute()
+            
+            if result.data:
+                return jsonify({
+                    "success": True, 
+                    "message": "Event request submitted for approval! Admin/Teacher will review it soon.",
+                    "pending": True
+                })
+            else:
+                return jsonify({"success": False, "message": "Failed to submit request"}), 500
         
-        success, msg = Scheduler.schedule_event(new_event, resource_ids)
-        
-        if success:
-            return jsonify({"success": True, "message": "Event Booked Successfully!"})
+        # Admin/Teacher create directly
         else:
-            return jsonify({"success": False, "message": msg}), 400
+            new_event = {
+                "id": f"EVT-{len(DataManager.get_events()) + 300}",
+                "title": event_details.get('title'),
+                "type": event_details.get('type'),
+                "start_time": event_details.get('start'),
+                "end_time": event_details.get('end'),
+                "description": f"Purpose: {event_details.get('purpose')}. Attendees: {event_details.get('capacity')}",
+                "created_by": user_id
+            }
+            
+            success, msg = Scheduler.schedule_event(new_event, resource_ids)
+            
+            if success:
+                return jsonify({"success": True, "message": "Event Booked Successfully!"})
+            else:
+                return jsonify({"success": False, "message": msg}), 400
+                
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -251,7 +268,6 @@ def get_event_details(event_id):
     if not event:
         return jsonify({"error": "Event not found"}), 404
     
-    # Get allocations for this event
     allocs = DataManager.get_allocations()
     resources = {r['id']: r for r in DataManager.get_resources()}
     
@@ -266,6 +282,105 @@ def get_event_details(event_id):
         "event": event,
         "resources": allocated_resources
     })
+
+# --- Approval Endpoints ---
+
+@app.route('/api/pending-events', methods=['GET'])
+@login_required
+def get_pending_events():
+    user_role = session.get('role', 'student')
+    user_id = session.get('user')
+    
+    try:
+        if user_role in ['admin', 'teacher']:
+            result = supabase.table('pending_events')\
+                .select('*')\
+                .eq('status', 'pending')\
+                .execute()
+        else:
+            result = supabase.table('pending_events')\
+                .select('*')\
+                .eq('requested_by', user_id)\
+                .execute()
+        
+        return jsonify(result.data if result.data else [])
+    except Exception as e:
+        print(f"Error fetching pending events: {e}")
+        return jsonify([])
+
+@app.route('/api/approve-event/<event_id>', methods=['POST'])
+@login_required
+def approve_event(event_id):
+    user_role = session.get('role', 'student')
+    user_id = session.get('user')
+    
+    if user_role not in ['admin', 'teacher']:
+        return jsonify({"error": "Unauthorized"}), 403
+    
+    try:
+        import json as json_lib
+        
+        result = supabase.table('pending_events').select('*').eq('id', event_id).execute()
+        
+        if not result.data or len(result.data) == 0:
+            return jsonify({"error": "Pending event not found"}), 404
+        
+        pending = result.data[0]
+        
+        new_event = {
+            "id": f"EVT-{len(DataManager.get_events()) + 500}",
+            "title": pending['title'],
+            "type": pending['type'],
+            "start_time": pending['start_time'],
+            "end_time": pending['end_time'],
+            "description": pending.get('description', ''),
+            "created_by": pending['requested_by']
+        }
+        
+        resource_ids = json_lib.loads(pending['requested_resources'])
+        success, msg = Scheduler.schedule_event(new_event, resource_ids)
+        
+        if success:
+            supabase.table('pending_events').update({
+                "status": "approved",
+                "reviewed_by": user_id
+            }).eq('id', event_id).execute()
+            
+            return jsonify({"success": True, "message": "Event approved and created!"})
+        else:
+            return jsonify({"success": False, "message": f"Failed to create event: {msg}"}), 400
+            
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/reject-event/<event_id>', methods=['POST'])
+@login_required
+def reject_event(event_id):
+    user_role = session.get('role', 'student')
+    user_id = session.get('user')
+    
+    if user_role not in ['admin', 'teacher']:
+        return jsonify({"error": "Unauthorized"}), 403
+    
+    try:
+        data = request.json or {}
+        reason = data.get('reason', 'No reason provided')
+        
+        result = supabase.table('pending_events').update({
+            "status": "rejected",
+            "reviewed_by": user_id,
+            "rejection_reason": reason
+        }).eq('id', event_id).execute()
+        
+        if result.data:
+            return jsonify({"success": True, "message": "Event request rejected"})
+        else:
+            return jsonify({"error": "Failed to reject event"}), 500
+            
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

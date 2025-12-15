@@ -1,10 +1,10 @@
 # EventHub AI 🎯
 
-A smart event scheduling and resource allocation system powered by Google Gemini AI and Supabase.
+A smart event scheduling and resource allocation system powered by Event IQ AI and Supabase.
 
 ## Features
 
-- 🤖 **AI-Powered Scheduling**: Gemini AI assistant for intelligent event booking
+- 🤖 **AI-Powered Scheduling**: Event IQ AI assistant for intelligent event booking and availability checking
 - 📅 **Manual Booking**: Direct event creation with availability checking
 - 🔐 **Authentication**: Secure login/signup with Supabase Auth
 - 🗄️ **Cloud Database**: Real-time data sync with Supabase
@@ -15,7 +15,7 @@ A smart event scheduling and resource allocation system powered by Google Gemini
 
 - **Backend**: Python Flask
 - **Database**: Supabase (PostgreSQL)
-- **AI**: Google Gemini 2.5 Pro
+- **AI**: Google Gemini 2.0 Flash (Event IQ powered)
 - **Frontend**: HTML, CSS, JavaScript (Vanilla)
 - **Authentication**: Supabase Auth
 
@@ -88,7 +88,7 @@ Event-IQ/
 1. **Login**: Use the default credentials or create a new account
 2. **View Dashboard**: See upcoming events and available resources
 3. **Manual Booking**: Click the green "+" button to create events manually
-4. **AI Assistant**: Click the blue chat button to interact with Gemini AI for intelligent scheduling
+4. **AI Assistant**: Click the blue chat button to interact with Event IQ AI for intelligent scheduling and availability checking
 
 ## License
 
