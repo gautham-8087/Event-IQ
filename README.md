@@ -58,11 +58,6 @@ python app.py
 
 6. Open `http://127.0.0.1:5000` in your browser.
 
-### Default Credentials
-
-- **Email**: agautham2024@gmail.com
-- **Password**: Gautham@12345
-
 ## Project Structure
 
 ```
