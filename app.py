@@ -101,8 +101,35 @@ def get_events():
 @app.route('/api/events/<event_id>', methods=['DELETE'])
 @login_required
 def delete_event(event_id):
-    DataManager.delete_event(event_id)
-    return jsonify({"success": True, "message": "Event deleted successfully"})
+    user_role = session.get('role', 'student')
+    
+    if user_role == 'student':
+        return jsonify({"error": "Unauthorized"}), 403
+        
+    if user_role == 'teacher':
+        # Create deletion request
+        try:
+            # Check if already requested
+            existing = supabase.table('deletion_requests').select('*').eq('event_id', event_id).eq('status', 'pending').execute()
+            if existing.data:
+                return jsonify({"message": "Deletion request already pending"}), 200
+                
+            supabase.table('deletion_requests').insert({
+                "id": f"DEL-{event_id}",
+                "event_id": event_id,
+                "requested_by": session.get('user')
+            }).execute()
+            return jsonify({"success": True, "message": "Deletion requested. Waiting for Admin approval.", "status": "pending"})
+        except Exception as e:
+            print(f"Error requesting deletion: {e}")
+            return jsonify({"error": "Failed to request deletion"}), 500
+
+    # Admin deletes directly
+    try:
+        DataManager.delete_event(event_id)
+        return jsonify({"success": True, "message": "Event deleted successfully"})
+    except Exception as e:
+        return jsonify({"success": False, "message": f"Deletion failed: {str(e)}"}), 500
 
 def extract_json(text):
     match = re.search(r'\{.*\}', text, re.DOTALL)
@@ -381,6 +408,90 @@ def reject_event(event_id):
             
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+# --- Deletion Approval Endpoints ---
+
+@app.route('/api/deletion-requests', methods=['GET'])
+@login_required
+def get_deletion_requests():
+    user_role = session.get('role', 'student')
+    if user_role != 'admin':
+        return jsonify({"error": "Unauthorized"}), 403
+        
+    try:
+        # Join with events table to get titles (Supabase join syntax or just fetch events separately)
+        # Simple approach: fetch requests, then fetch event details for them
+        requests = supabase.table('deletion_requests').select('*').eq('status', 'pending').execute()
+        
+        enriched_requests = []
+        if requests.data:
+            for req in requests.data:
+                # get event details
+                evt_res = supabase.table('events').select('title, type').eq('id', req['event_id']).execute()
+                evt_info = evt_res.data[0] if evt_res.data else {"title": "Unknown Event", "type": "Unknown"}
+                
+                # get user details
+                user_res = supabase.table('users').select('full_name, email').eq('id', req['requested_by']).execute()
+                user_info = user_res.data[0] if user_res.data else {"full_name": "Unknown", "email": "Unknown"}
+                
+                req['event_title'] = evt_info['title']
+                req['event_type'] = evt_info['type']
+                req['requested_by_name'] = user_info['full_name']
+                enriched_requests.append(req)
+                
+        return jsonify(enriched_requests)
+    except Exception as e:
+        print(f"Error fetching deletion requests: {e}")
+        return jsonify([])
+
+@app.route('/api/approve-deletion/<request_id>', methods=['POST'])
+@login_required
+def approve_deletion(request_id):
+    if session.get('role') != 'admin':
+        return jsonify({"error": "Unauthorized"}), 403
+        
+    try:
+        # Get request info
+        req = supabase.table('deletion_requests').select('*').eq('id', request_id).execute()
+        if not req.data:
+            return jsonify({"error": "Request not found"}), 404
+            
+        event_id = req.data[0]['event_id']
+        
+        # Delete the event
+        DataManager.delete_event(event_id)
+        
+        # Update request status
+        supabase.table('deletion_requests').update({"status": "approved"}).eq('id', request_id).execute()
+        
+        return jsonify({"success": True, "message": "Deletion approved and event removed."})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/reject-deletion/<request_id>', methods=['POST'])
+@login_required
+def reject_deletion(request_id):
+    if session.get('role') != 'admin':
+        return jsonify({"error": "Unauthorized"}), 403
+        
+    try:
+        supabase.table('deletion_requests').update({"status": "rejected"}).eq('id', request_id).execute()
+        return jsonify({"success": True, "message": "Deletion request rejected."})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/archived-events', methods=['GET'])
+@login_required
+def get_archived_events():
+    if session.get('role') != 'admin':
+        return jsonify({"error": "Unauthorized"}), 403
+        
+    try:
+        response = supabase.table('archived_events').select("*").order('deleted_at', desc=True).execute()
+        return jsonify(response.data)
+    except Exception as e:
+        print(f"Error fetching archived events: {e}")
+        return jsonify([])
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

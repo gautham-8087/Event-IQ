@@ -7,6 +7,11 @@
     <title>{% block title %}EventHub IQ{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <script>
+        const USER_ROLE = "{{ user_role }}";
+    </script>
 </head>
 
 <body>
@@ -26,6 +31,17 @@
                     <i class="ph ph-bell" style="font-size: 20px;"></i>
                     <span id="pending-count"
                         style="display: none; position: absolute; top: -5px; right: -5px; background: #ef4444; color: white; border-radius: 50%; width: 20px; height: 20px; font-size: 0.7rem; font-weight: bold; display: flex; align-items: center; justify-content: center;">0</span>
+                </button>
+                {% endif %}
+
+                {% if user_role == 'admin' %}
+                <button id="reports-btn" title="View Reports"
+                    style="background: rgba(168, 85, 247, 0.1); color: #a855f7; border: 1px solid rgba(168, 85, 247, 0.2); padding: 0.6rem; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                    <i class="ph ph-file-pdf" style="font-size: 20px;"></i>
+                </button>
+                <button id="trash-btn" title="Deleted Events"
+                    style="background: rgba(234, 179, 8, 0.1); color: #eab308; border: 1px solid rgba(234, 179, 8, 0.2); padding: 0.6rem; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                    <i class="ph ph-trash" style="font-size: 20px;"></i>
                 </button>
                 {% endif %}
 

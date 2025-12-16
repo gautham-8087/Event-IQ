@@ -82,10 +82,11 @@ class Scheduler:
         # Save Event
         DataManager.add_event(event_data)
         
+        import uuid
         # Save Allocations
         for rid in resource_ids:
             alloc = {
-                "id": f"A{len(DataManager.get_allocations()) + 1}",
+                "id": f"A-{uuid.uuid4()}",
                 "event_id": event_data['id'],
                 "resource_id": rid
             }

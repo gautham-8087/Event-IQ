@@ -3,7 +3,7 @@ import os
 from .supabase_client import supabase
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data')
-USE_SUPABASE = os.environ.get("USE_SUPABASE") == "True"
+USE_SUPABASE = supabase is not None
 
 class DataManager:
     EVENTS_FILE = os.path.join(DATA_DIR, 'events.json')
@@ -100,10 +100,32 @@ class DataManager:
     def delete_event(cls, event_id):
         if USE_SUPABASE:
             try:
+                # Archive before delete
+                response = supabase.table('events').select("*").eq('id', event_id).execute()
+                if response.data:
+                    event = response.data[0]
+                    import uuid
+                    # Prepare archive record
+                    archive_record = {
+                        "id": f"ARCH-{uuid.uuid4()}",
+                        "original_id": event['id'],
+                        "title": event['title'],
+                        "type": event['type'],
+                        "start_time": event['start_time'],
+                        "end_time": event['end_time'],
+                        "description": event.get('description'),
+                    }
+                    supabase.table('archived_events').insert(archive_record).execute()
+
                 # Allocations cascade deleted via DB FK constraints
-                supabase.table('events').delete().eq('id', event_id).execute()
+                del_res = supabase.table('events').delete().eq('id', event_id).execute()
+                if not del_res.data:
+                    # Depending on Supabase version, delete might return data or empty list
+                    pass
+
             except Exception as e:
                 print(f"Supabase Error (delete_event): {e}")
+                raise e # Re-raise to let caller handle it
             return
 
         events = cls.get_events()

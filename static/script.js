@@ -68,7 +68,9 @@ async function loadData() {
                 </div>
             `;
 
-            div.appendChild(delBtn);
+            if (typeof USER_ROLE !== 'undefined' && USER_ROLE !== 'student') {
+                div.appendChild(delBtn);
+            }
             div.onclick = () => showEventDetails(evt.id);
             eventsList.appendChild(div);
         });
@@ -122,10 +124,15 @@ async function deleteEvent(eventId, eventTitle) {
         const data = await res.json();
 
         if (data.success) {
-            // Toast or just reload
-            loadData();
+            if (data.status === 'pending') {
+                alert("Deletion requested. Waiting for Admin approval.");
+            } else {
+                // Toast or just reload
+                loadData();
+            }
         } else {
-            alert("Failed to delete event.");
+            if (data.message) alert(data.message);
+            else alert("Failed to delete event.");
         }
     } catch (e) {
         console.error("Delete failed", e);
@@ -394,6 +401,7 @@ if (checkAvailBtn) checkAvailBtn.addEventListener('click', async () => {
     }
 });
 
+
 if (confirmBookBtn) confirmBookBtn.addEventListener('click', async () => {
     const title = document.getElementById('m-title').value || "Manual Event";
     const type = document.getElementById('m-type').value;
@@ -456,3 +464,132 @@ if (confirmBookBtn) confirmBookBtn.addEventListener('click', async () => {
         confirmBookBtn.innerText = "Confirm Booking";
     }
 });
+
+// --- Reports Logic ---
+const reportsBtn = document.getElementById('reports-btn');
+const reportsModal = document.getElementById('reports-modal');
+const closeReports = document.getElementById('close-reports');
+const exportPdfBtn = document.getElementById('export-pdf-btn');
+
+if (reportsBtn) {
+    reportsBtn.addEventListener('click', async () => {
+        reportsModal.style.display = 'flex';
+        await loadReports();
+    });
+}
+
+if (closeReports) {
+    closeReports.addEventListener('click', () => {
+        reportsModal.style.display = 'none';
+    });
+}
+
+async function loadReports() {
+    const tbody = document.getElementById('reports-table-body');
+    if (!tbody) return;
+
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:1rem;">Loading...</td></tr>';
+
+    try {
+        const res = await fetch('/api/events');
+        const events = await res.json();
+
+        tbody.innerHTML = '';
+
+        events.forEach(evt => {
+            const tr = document.createElement('tr');
+            tr.style.borderBottom = '1px solid var(--glass-border)';
+
+            tr.innerHTML = `
+                <td style="padding:0.8rem;">${evt.id}</td>
+                <td style="padding:0.8rem;">${evt.title}</td>
+                <td style="padding:0.8rem;">${evt.type}</td>
+                <td style="padding:0.8rem;">${new Date(evt.start_time).toLocaleDateString()}</td>
+                <td style="padding:0.8rem;">${evt.created_by || 'Unknown'}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+    } catch (e) {
+        console.error(e);
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:1rem;">Error loading reports</td></tr>';
+    }
+}
+
+if (exportPdfBtn) {
+    exportPdfBtn.addEventListener('click', () => {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        doc.text("Event List Report", 14, 20);
+
+        const tbody = document.getElementById('reports-table-body');
+        const rows = Array.from(tbody.querySelectorAll('tr')).map(tr => {
+            return Array.from(tr.querySelectorAll('td')).map(td => td.innerText);
+        });
+
+        doc.autoTable({
+            head: [['ID', 'Title', 'Type', 'Date', 'Created By']],
+            body: rows,
+            startY: 30,
+        });
+
+        doc.save('event-report.pdf');
+    });
+}
+
+
+// --- Trash History Logic ---
+const trashBtn = document.getElementById('trash-btn');
+const trashModal = document.getElementById('trash-modal');
+const closeTrash = document.getElementById('close-trash');
+const trashList = document.getElementById('trash-list');
+
+if (trashBtn) {
+    trashBtn.addEventListener('click', async () => {
+        trashModal.style.display = 'flex';
+        await loadTrash();
+    });
+}
+
+if (closeTrash) {
+    closeTrash.addEventListener('click', () => {
+        trashModal.style.display = 'none';
+    });
+}
+
+async function loadTrash() {
+    if (!trashList) return;
+    trashList.innerHTML = '<p style="text-align:center; color:var(--text-secondary);">Loading deleted events...</p>';
+
+    try {
+        const res = await fetch('/api/archived-events');
+        const events = await res.json();
+
+        if (events.length === 0) {
+            trashList.innerHTML = '<p style="text-align:center; color:var(--text-secondary);">No deleted events found.</p>';
+            return;
+        }
+
+        trashList.innerHTML = '';
+
+        events.forEach(evt => {
+            const card = document.createElement('div');
+            card.style.cssText = 'background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); border-radius: 12px; padding: 1rem;';
+
+            card.innerHTML = `
+                 <div style="display:flex; justify-content:space-between; margin-bottom:0.5rem;">
+                    <h3 style="margin:0; font-size:1rem; color: #9ca3af; text-decoration: line-through;">${evt.title}</h3>
+                    <span style="font-size:0.8rem; color:#ef4444;">Deleted: ${new Date(evt.deleted_at).toLocaleDateString()}</span>
+                 </div>
+                 <div style="font-size:0.85rem; color:var(--text-secondary);">
+                    ID: ${evt.original_id} | Type: ${evt.type}
+                 </div>
+            `;
+            trashList.appendChild(card);
+        });
+    } catch (e) {
+        console.error(e);
+        trashList.innerHTML = '<p style="text-align:center; color:#ef4444;">Error loading trash.</p>';
+    }
+}

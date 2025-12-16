@@ -137,6 +137,21 @@
     </div>
 </div>
 
+<!-- Deleted Events Modal (Admin only) -->
+<div id="trash-modal" class="glass-panel"
+    style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); width:600px; max-height:80vh; overflow-y:auto; z-index:2000; padding:2rem; flex-direction:column; gap:1rem;">
+    <div
+        style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--glass-border); padding-bottom:1rem;">
+        <h2 style="margin:0;">🗑️ Deleted Events History</h2>
+        <button id="close-trash"
+            style="background:none; border:none; color:white; font-size:1.5rem; cursor:pointer;">&times;</button>
+    </div>
+
+    <div id="trash-list" style="display:flex; flex-direction:column; gap:1rem;">
+        <!-- Populated by JS -->
+    </div>
+</div>
+
 <!-- Approvals Modal (Admin/Teacher only) -->
 <div id="approvals-modal" class="glass-panel"
     style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); width:700px; max-height:80vh; overflow-y:auto; z-index:2000; padding:2rem; flex-direction:column; gap:1rem;">
@@ -150,6 +165,41 @@
     <div id="approvals-list" style="display:flex; flex-direction:column; gap:1rem;">
         <!-- Populated by JavaScript -->
         <p style="text-align:center; color:var(--text-secondary);">Loading...</p>
+    </div>
+</div>
+
+<!-- Reports Modal (Admin only) -->
+<div id="reports-modal" class="glass-panel"
+    style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); width:800px; max-height:85vh; overflow-y:auto; z-index:2000; padding:2rem; flex-direction:column; gap:1rem;">
+    <div
+        style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--glass-border); padding-bottom:1rem;">
+        <h2 style="margin:0;">📊 Event Reports</h2>
+        <button id="close-reports"
+            style="background:none; border:none; color:white; font-size:1.5rem; cursor:pointer;">&times;</button>
+    </div>
+
+    <div style="display:flex; justify-content: flex-end; margin-bottom: 1rem;">
+        <button id="export-pdf-btn"
+            style="background: #a855f7; color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
+            <i class="ph ph-file-pdf"></i> Export PDF
+        </button>
+    </div>
+
+    <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; color: var(--text-primary); font-size: 0.9rem;">
+            <thead>
+                <tr style="border-bottom: 1px solid var(--glass-border); text-align: left;">
+                    <th style="padding: 0.5rem;">ID</th>
+                    <th style="padding: 0.5rem;">Title</th>
+                    <th style="padding: 0.5rem;">Type</th>
+                    <th style="padding: 0.5rem;">Date</th>
+                    <th style="padding: 0.5rem;">Created By</th>
+                </tr>
+            </thead>
+            <tbody id="reports-table-body">
+                <!-- Rows populated by JS -->
+            </tbody>
+        </table>
     </div>
 </div>
 

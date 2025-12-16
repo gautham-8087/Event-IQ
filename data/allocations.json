@@ -23,25 +23,5 @@
     "id": "A5",
     "event_id": "EVT-300",
     "resource_id": "E320"
-  },
-  {
-    "id": "A6",
-    "event_id": "EVT-301",
-    "resource_id": "R102"
-  },
-  {
-    "id": "A7",
-    "event_id": "EVT-301",
-    "resource_id": "I215"
-  },
-  {
-    "id": "A8",
-    "event_id": "EVT-301",
-    "resource_id": "E318"
-  },
-  {
-    "id": "A9",
-    "event_id": "EVT-301",
-    "resource_id": "E320"
   }
 ]
