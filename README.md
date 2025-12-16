@@ -2,6 +2,9 @@
 
 A smart event scheduling and resource allocation system powered by Event IQ AI and Supabase.
 
+# SCREENSHOTS AND RECOREDE VIDEO (View this drive link):
+https://drive.google.com/drive/folders/1f9yo210F896c4dg7w88huwhw8An960wt?usp=drive_link
+
 ## Features
 
 - 🤖 **AI-Powered Scheduling**: Event IQ AI assistant for intelligent event booking and availability checking
